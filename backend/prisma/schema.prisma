@@ -1,0 +1,42 @@
+// 1. Der Generator erstellt den JS-Code, mit dem wir später Datenbankabfragen schreiben
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 2. Die Datasource verbindet Prisma mit deiner PostgreSQL-Datenbank über die .env Datei
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 3. Tabellen-Definitionen (Physisches Datenmodell Kapitel 3.4)
+
+// Tabelle: users
+model User {
+  id           Int          @id @default(autoincrement()) // user_id (PK)
+  email        String       @unique                       // email (Unique)
+  passwordHash String                                     // password_hash
+  firstName    String?                                    // first_name (Optional)
+  lastName     String?                                    // last_name (Optional)
+  role         String       @default("PRIVAT")            // 'PRIVAT', 'INSTITUTION', 'ADMIN'
+  isVerified   Boolean      @default(false)               // is_verified
+  createdAt    DateTime     @default(now())               // created_at
+  
+  // Relation: Ein User kann viele Haustiere besitzen
+  pets         PetProfile[]
+}
+
+// Tabelle: pet_profiles
+model PetProfile {
+  id          Int      @id @default(autoincrement()) // pet_id (PK)
+  name        String                                 // name
+  species     String                                 // species (z.B. DOG, CAT)
+  breed       String?                                // breed
+  description String?  @db.Text                      // description (Langer Text)
+  birthdate   DateTime?                               // birthdate
+  createdAt   DateTime @default(now())               // created_at
+
+  // Fremdschlüssel: Verknüpfung zum Besitzer (User)
+  ownerId     Int
+  owner       User     @relation(fields: [ownerId], references: [id])
+}

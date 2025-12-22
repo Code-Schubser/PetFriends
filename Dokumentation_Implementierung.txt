@@ -1,0 +1,35 @@
+======================================================================
+DOKUMENTATION IMPLEMENTIERUNG – PROJEKT: PETFRIENDS
+======================================================================
+Datum: 21.12.2025 | Stand: 20:15 Uhr
+
+MEILENSTEIN 1: PROJEKTSTRUKTUR & BASIS-SETUP
+----------------------------------------------------------------------
+
+1. PROJEKT-ORGANISATION:
+   * Hauptverzeichnis 'PetFriends' erstellt.
+   * Verzeichnisstruktur gemäß 3-Schichten-Architektur (Kapitel 3.1) 
+     bereinigt: /backend und /frontend-web liegen nun sauber getrennt 
+     [cite_start]nebeneinander[cite: 691, 693].
+   * Git-Repository initialisiert und .gitignore im Hauptverzeichnis 
+     konfiguriert.
+   * Erster Basis-Commit durchgeführt.
+
+2. PRÄSENTATIONSSCHICHT (FRONTEND-WEB):
+   * [cite_start]Vue.js-Framework mit Vite initialisiert[cite: 696, 721].
+   * Tailwind CSS zur Umsetzung der UI-Designprinzipien (Kapitel 2.5.1) 
+     [cite_start]installiert[cite: 143, 144].
+   * Konfigurationsdateien (tailwind.config.js / postcss.config.js) 
+     manuell angelegt, um Pfadprobleme unter Windows zu umgehen.
+   * Erfolgreicher Testlauf: Client läuft auf http://localhost:5173.
+
+3. ANWENDUNGSSCHICHT (BACKEND):
+   * [cite_start]Node.js-Umgebung mit Express-Framework aufgesetzt[cite: 703, 714].
+   * Nodemon für automatische Restarts in der Entwicklung integriert.
+   * Ersten Health-Check-Endpunkt (/api/health) implementiert.
+   * Erfolgreicher Testlauf: Server läuft auf http://localhost:3000.
+
+NÄCHSTE SCHRITTE:
+* [cite_start]Einrichtung der Datenschicht (PostgreSQL & Prisma)[cite: 707, 709].
+* [cite_start]Definition des Datenmodells in der schema.prisma[cite: 811, 820].
+======================================================================
