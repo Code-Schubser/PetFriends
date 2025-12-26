@@ -33,3 +33,39 @@ NÄCHSTE SCHRITTE:
 * [cite_start]Einrichtung der Datenschicht (PostgreSQL & Prisma)[cite: 707, 709].
 * [cite_start]Definition des Datenmodells in der schema.prisma[cite: 811, 820].
 ======================================================================
+
+======================================================================
+DOKUMENTATION IMPLEMENTIERUNG – PROJEKT: PETFRIENDS
+======================================================================
+Datum: 22.12.2025 | Stand: 20:25 Uhr
+
+MEILENSTEIN 2: DATENSCHICHT (DATABASE & PERSISTENZ)
+----------------------------------------------------------------------
+
+1. INFRASTRUKTUR & VERSIONIERUNG:
+   * GitHub-Synchronisation des Vortags-Standes durchgeführt.
+   * Lokale PostgreSQL-Datenbank 'petfriends' via pgAdmin 4 erstellt.
+   * Manuelle Konfiguration der .env-Umgebungsvariablen für DB-Zugriff.
+
+2. PRISMA-SETUP & FEHLERBEHEBUNG:
+   * Downgrade von Prisma 7 auf Prisma 6 durchgeführt, um Inkompatibilitäten 
+     bei der lokalen Konfiguration (nfa-rb-02) zu vermeiden.
+   * Bereinigung der Verzeichnisstruktur (Entfernung störender .ts-Konfigs).
+
+3. DATENMODELLIERUNG (KAPITEL 3.4):
+   * Umsetzung des physischen Datenmodells in 'schema.prisma'.
+   * Modell 'User': ID-Mapping, E-Mail-Unique-Constraint und Rollen-Vorgaben.
+   * Modell 'PetProfile': Implementierung der 1:N-Relation (Besitzer-Tier) 
+     inklusive Fremdschlüssel-Logik.
+
+4. MIGRATION & INTEGRATIONSTEST:
+   * Erfolgreiche Migration ('prisma migrate dev'): Physische Erstellung 
+     der Tabellen in der PostgreSQL-Instanz.
+   * Integrationstest via 'test-db.js': Erfolgreiches Schreiben eines 
+     Nutzerdatensatzes aus der Node.js-Umgebung in die Datenbank.
+
+ERGEBNIS:
+Das Backend ist nun vollständig mit der Datenbank verknüpft. Die 
+Grundlage für die Implementierung der Geschäftslogik (API-Endpunkte) 
+ist gelegt.
+======================================================================
