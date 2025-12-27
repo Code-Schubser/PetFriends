@@ -38,5 +38,5 @@ model PetProfile {
 
   // Fremdschlüssel: Verknüpfung zum Besitzer (User)
   ownerId     Int
-  owner       User     @relation(fields: [ownerId], references: [id])
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 }
