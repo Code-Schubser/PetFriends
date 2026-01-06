@@ -112,19 +112,21 @@
         <section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <div class="bg-white rounded-3xl shadow-sm p-8 border-b-8 border-indigo-500">
             <p class="text-xs font-black text-gray-400 uppercase tracking-widest">
-              Mitglieder
+              {{ currentUser.role === "ADMIN" ? "Mitglieder" : "Dein Konto" }}
             </p>
             <p class="text-4xl font-black text-gray-900">{{ totalUsers }}</p>
           </div>
+
           <div class="bg-white rounded-3xl shadow-sm p-8 border-b-8 border-orange-500">
             <p class="text-xs font-black text-gray-400 uppercase tracking-widest">
-              Haustiere
+              {{ currentUser.role === "ADMIN" ? "Haustiere gesamt" : "Deine Lieblinge" }}
             </p>
             <p class="text-4xl font-black text-gray-900">{{ totalPets }}</p>
           </div>
+
           <div class="bg-white rounded-3xl shadow-sm p-8 border-b-8 border-green-500">
             <p class="text-xs font-black text-gray-400 uppercase tracking-widest">
-              Tiere / Kopf
+              {{ currentUser.role === "ADMIN" ? "Tiere / Kopf" : "System-Modus" }}
             </p>
             <p class="text-4xl font-black text-gray-900">{{ avgPets }}</p>
           </div>
@@ -437,12 +439,22 @@
                   <div
                     class="p-4 bg-gray-50/50 flex justify-between items-center border-b border-gray-100"
                   >
-                    <span class="font-bold text-gray-700 text-sm"
-                      >{{ user.firstName }} {{ user.lastName }}</span
-                    >
-                    <span class="text-[10px] font-black text-gray-300 uppercase"
-                      >{{ user.pets.length }} Tiere</span
-                    >
+                    <div class="flex items-center">
+                      <span class="font-bold text-gray-700 text-sm">
+                        {{ user.firstName }} {{ user.lastName }}
+                      </span>
+
+                      <span
+                        v-if="user.role === 'ADMIN'"
+                        class="ml-2 bg-amber-100 text-amber-700 text-[8px] px-1.5 py-0.5 rounded font-black uppercase tracking-tighter"
+                      >
+                        Admin
+                      </span>
+                    </div>
+
+                    <span class="text-[10px] font-black text-gray-300 uppercase">
+                      {{ user.pets.length }} Tiere
+                    </span>
                   </div>
                   <div class="p-4 flex gap-3 overflow-x-auto">
                     <div
@@ -492,13 +504,25 @@ const searchQuery = ref("");
 const filterSpecies = ref("ALL");
 
 // COMPUTED STATS
-const totalUsers = computed(() => users.value.length);
-const totalPets = computed(() =>
-  users.value.reduce((s, u) => s + (u.pets?.length || 0), 0)
-);
-const avgPets = computed(() =>
-  totalUsers.value ? (totalPets.value / totalUsers.value).toFixed(1) : "0.0"
-);
+const totalUsers = computed(() => {
+  return currentUser.value?.role === "ADMIN" ? users.value.length : "Profil aktiv";
+});
+
+const totalPets = computed(() => {
+  if (currentUser.value?.role === "ADMIN") {
+    return users.value.reduce((s, u) => s + (u.pets?.length || 0), 0);
+  }
+  // Für Privat-Nutzer: Greift auf myAccountData zu, das bei dir schon definiert ist
+  return myAccountData.value?.pets?.length || 0;
+});
+
+const avgPets = computed(() => {
+  if (currentUser.value?.role === "ADMIN") {
+    const totalP = users.value.reduce((s, u) => s + (u.pets?.length || 0), 0);
+    return users.value.length ? (totalP / users.value.length).toFixed(1) : "0.0";
+  }
+  return "Privat-Modus";
+});
 const myAccountData = computed(() => {
   if (!currentUser.value) return null;
   return users.value.find((u) => u.id === currentUser.value.id);

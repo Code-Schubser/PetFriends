@@ -107,3 +107,48 @@ Der Prototyp ermöglicht nun die vollständige Erfassung und Anzeige
 von Haustierprofilen in Echtzeit. Die technische Brücke zwischen 
 Anwendungsschicht und Persistenzschicht ist stabil.
 ======================================================================
+
+======================================================================
+DOKUMENTATION IMPLEMENTIERUNG – PROJEKT: PETFRIENDS
+======================================================================
+Datum: 27.12.2025 | Stand: 17:00 Uhr
+
+MEILENSTEIN 4: AUTHENTIFIZIERUNG, RBAC & ADMIN-VERWALTUNG
+----------------------------------------------------------------------
+
+1. SECURITY & PERSISTENZ (AUTHENTIFIZIERUNG):
+   * Implementierung von persistenten Sessions via 'localStorage'. 
+     Nutzerdaten bleiben nach Browser-Refresh erhalten.
+   * Erweiterung der App-Initialisierung (onMounted) zur automatischen 
+     Wiederherstellung des Login-Status.
+   * Implementierung einer sicheren Logout-Routine zur Bereinigung 
+     sensibler Daten aus dem Browser-Speicher.
+
+2. ROLLENBASIERTE AUTORISIERUNG (RBAC):
+   * Einführung des Rollenmodells 'ADMIN' vs. 'PRIVAT' zur Steuerung 
+     von Zugriffsberechtigungen (Authorization).
+   * Implementierung von UI-Guards via v-if-Direktiven: Administrative 
+     Module sind für reguläre Nutzer technisch ausgeblendet.
+   * Backend-Anpassung: Der userController verarbeitet nun flexible 
+     Rollen-Zuweisungen bei der Registrierung durch Administratoren.
+
+3. ADMINISTRATIVE NUTZERVERWALTUNG (CRUD):
+   * Entwicklung einer Nutzer-Verwaltungs-Oberfläche (User Table) 
+     exklusiv für Administratoren.
+   * Implementierung einer Lösch-Logik für Benutzerkonten:
+     - Manueller 'Cascading Delete': Sicherstellung der Datenintegrität 
+       durch vorheriges Löschen aller verknüpften 'PetProfile'-Einträge.
+     - Schutzmechanismus: Verbot der Selbst-Löschung für den aktuell 
+       angemeldeten Administrator.
+
+4. FEHLERBEHEBUNG & REFACTORING:
+   * Prisma-Mapping-Korrektur: Synchronisation der Controller-Logik 
+     mit dem physischen Datenmodell (prisma.petProfile statt prisma.pet).
+   * Lösung von Windows-spezifischen EPERM-Dateizugriffsfehlern während 
+     der Codegenerierung (npx prisma generate).
+
+ERGEBNIS:
+Das System verfügt nun über ein vollwertiges Identitäts- und 
+Zugriffsmanagement. Administratoren können das System nun ohne 
+direkten Datenbankzugriff (GUI-basiert) verwalten.
+======================================================================
