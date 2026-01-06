@@ -2,23 +2,30 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 exports.createPet = async (req, res) => {
-  const { name, species, breed, description, birthdate, ownerId } = req.body;
+  const { name, species, breed, ownerId } = req.body;
+  
+  // Wir schauen nach, ob Multer eine Datei in req.file abgelegt hat
+  let imageUrl = null;
+  if (req.file) {
+    // Wir speichern den Pfad, unter dem das Bild erreichbar ist
+    imageUrl = `/uploads/${req.file.filename}`;
+  }
+
   try {
     const newPet = await prisma.petProfile.create({
       data: {
         name,
         species,
         breed,
-        description,
-        birthdate: birthdate ? new Date(birthdate) : null,
-        ownerId: parseInt(ownerId)
+        ownerId: parseInt(ownerId),
+        imageUrl: imageUrl // Hier wird der Pfad gespeichert
       }
     });
-    res.status(201).json(newPet);
+    res.json(newPet);
   } catch (error) {
-    res.status(500).json({ error: 'Fehler beim Erstellen des Haustier-Profils' });
+    console.error(error);
+    res.status(500).json({ error: "Fehler beim Erstellen des Tieres" });
   }
-
 };
 
 exports.deletePet = async (req, res) => {

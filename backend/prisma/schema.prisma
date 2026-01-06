@@ -28,15 +28,14 @@ model User {
 
 // Tabelle: pet_profiles
 model PetProfile {
-  id          Int      @id @default(autoincrement()) // pet_id (PK)
-  name        String                                 // name
-  species     String                                 // species (z.B. DOG, CAT)
-  breed       String?                                // breed
-  description String?  @db.Text                      // description (Langer Text)
-  birthdate   DateTime?                               // birthdate
-  createdAt   DateTime @default(now())               // created_at
-
-  // Fremdschlüssel: Verknüpfung zum Besitzer (User)
+  id          Int      @id @default(autoincrement())
+  name        String
+  species     String
+  breed       String?
+  description String?  @db.Text
+  birthdate   DateTime?
+  imageUrl    String? 
+  createdAt   DateTime @default(now())
   ownerId     Int
   owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 }

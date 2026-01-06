@@ -219,16 +219,39 @@
                     class="w-full border-2 border-gray-100 p-3 rounded-xl outline-none"
                   />
                 </div>
-                <select
-                  v-model="newPet.ownerId"
-                  class="w-full border-2 border-indigo-50 p-3 rounded-xl bg-indigo-50 font-bold text-indigo-700 outline-none"
-                  required
-                >
-                  <option :value="null" disabled>Besitzer wählen</option>
-                  <option v-for="user in users" :key="user.id" :value="user.id">
-                    {{ user.firstName }} {{ user.lastName }}
-                  </option>
-                </select>
+                <div class="space-y-2">
+                  <label
+                    class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1"
+                    >Foto auswählen</label
+                  >
+                  <input
+                    type="file"
+                    @change="handleFileUpload"
+                    accept="image/*"
+                    class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <select
+                    v-if="currentUser.role === 'ADMIN'"
+                    v-model="newPet.ownerId"
+                    class="w-full border-2 border-indigo-50 p-3 rounded-xl bg-indigo-50 font-bold text-indigo-700 outline-none"
+                    required
+                  >
+                    <option :value="null" disabled>Besitzer wählen</option>
+                    <option v-for="user in users" :key="user.id" :value="user.id">
+                      {{ user.firstName }} {{ user.lastName }}
+                    </option>
+                  </select>
+
+                  <div
+                    v-else
+                    class="w-full border-2 border-gray-100 p-3 rounded-xl bg-gray-50 font-bold text-gray-500 flex items-center"
+                  >
+                    <span class="mr-2">👤</span> {{ currentUser.firstName }}
+                    {{ currentUser.lastName }}
+                  </div>
+                </div>
                 <button
                   type="submit"
                   :class="isEditing ? 'bg-orange-500' : 'bg-indigo-600'"
@@ -300,7 +323,18 @@
                       class="bg-white p-4 rounded-2xl flex justify-between items-center shadow-sm border border-indigo-50"
                     >
                       <div class="flex items-center space-x-4">
-                        <span class="text-3xl">{{ getSpeciesIcon(pet.species) }}</span>
+                        <div
+                          class="h-16 w-16 flex-shrink-0 overflow-hidden rounded-2xl bg-indigo-100 flex items-center justify-center border-2 border-white shadow-sm"
+                        >
+                          <img
+                            v-if="pet.imageUrl"
+                            :src="`http://localhost:3000${pet.imageUrl}`"
+                            class="h-full w-full object-cover"
+                          />
+                          <span v-else class="text-3xl">{{
+                            getSpeciesIcon(pet.species)
+                          }}</span>
+                        </div>
                         <div>
                           <p class="font-bold text-gray-800">{{ pet.name }}</p>
                           <p class="text-[10px] text-indigo-500 font-black uppercase">
@@ -462,7 +496,18 @@
                       :key="pet.id"
                       class="flex-shrink-0 bg-gray-50 px-3 py-2 rounded-xl flex items-center space-x-2 border border-gray-100"
                     >
-                      <span class="text-xl">{{ getSpeciesIcon(pet.species) }}</span>
+                      <div
+                        class="h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-gray-200 flex items-center justify-center"
+                      >
+                        <img
+                          v-if="pet.imageUrl"
+                          :src="`http://localhost:3000${pet.imageUrl}`"
+                          class="h-full w-full object-cover"
+                        />
+                        <span v-else class="text-xl">{{
+                          getSpeciesIcon(pet.species)
+                        }}</span>
+                      </div>
                       <span class="text-xs font-bold text-gray-600">{{ pet.name }}</span>
                     </div>
                   </div>
@@ -486,6 +531,7 @@ const isRegistering = ref(false);
 const loading = ref(true);
 const isEditing = ref(false);
 const editingPetId = ref(null);
+const selectedFile = ref(null);
 
 // DATA STATES
 const users = ref([]);
@@ -550,6 +596,10 @@ const filteredUsers = computed(() => {
     return (userMatch || petMatch) && speciesMatch;
   });
 });
+const handleFileUpload = (event) => {
+  // Wir nehmen die erste Datei aus der Auswahl
+  selectedFile.value = event.target.files[0];
+};
 
 // ACTIONS
 const fetchUsers = async () => {
@@ -596,18 +646,40 @@ const logout = () => {
 
 const addPet = async () => {
   try {
-    if (isEditing.value) {
-      await axios.put(
-        `http://localhost:3000/api/pets/${editingPetId.value}`,
-        newPet.value
-      );
-    } else {
-      await axios.post("http://localhost:3000/api/pets", newPet.value);
+    // 1. Wir erstellen den "Umschlag"
+    const formData = new FormData();
+
+    // 2. Wir packen alle Infos hinein
+    formData.append("name", newPet.value.name);
+    formData.append("species", newPet.value.species);
+    formData.append("breed", newPet.value.breed || "");
+    // Wir checken: Ist es ein Admin? Dann nimm seine Auswahl.
+    // Wenn nicht, nimm automatisch die ID vom eingeloggten User.
+    const finalOwnerId =
+      currentUser.value.role === "ADMIN" ? newPet.value.ownerId : currentUser.value.id;
+
+    formData.append("ownerId", finalOwnerId);
+
+    // 3. Wenn ein Foto ausgewählt wurde, packen wir es auch in den Umschlag
+    if (selectedFile.value) {
+      formData.append("image", selectedFile.value);
     }
-    cancelEdit();
+
+    // 4. Den Umschlag per API abschicken
+    if (isEditing.value) {
+      await axios.put(`http://localhost:3000/api/pets/${editingPetId.value}`, formData);
+    } else {
+      await axios.post("http://localhost:3000/api/pets", formData);
+    }
+
+    // 5. Alles zurücksetzen und Liste neu laden
+    newPet.value = { name: "", species: "DOG", breed: "", ownerId: null };
+    selectedFile.value = null; // Foto-Auswahl leeren
+    isEditing.value = false;
     await fetchUsers();
   } catch (e) {
-    alert("Fehler beim Speichern!");
+    console.error("Fehler beim Speichern:", e);
+    alert("Das Tier konnte nicht gespeichert werden.");
   }
 };
 

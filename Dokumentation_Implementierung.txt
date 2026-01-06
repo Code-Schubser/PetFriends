@@ -152,3 +152,72 @@ Das System verfügt nun über ein vollwertiges Identitäts- und
 Zugriffsmanagement. Administratoren können das System nun ohne 
 direkten Datenbankzugriff (GUI-basiert) verwalten.
 ======================================================================
+
+======================================================================
+DOKUMENTATION IMPLEMENTIERUNG – PROJEKT: PETFRIENDS
+======================================================================
+Datum: 06.01.2026 | Stand: 20:30 Uhr
+
+MEILENSTEIN 5: PERSONALISIERTE DASHBOARD-LOGIK & UI-REFINEMENT
+----------------------------------------------------------------------
+
+1. DYNAMISCHE STATISTIK-BERECHNUNG:
+   * Refactoring der 'Computed Stats' (totalUsers, totalPets, avgPets).
+   * Implementierung einer rollenabhängigen Weiche: 
+     - Admins erhalten globale Systemstatistiken (Gesamtsummen).
+     - Privat-Nutzer erhalten eine persönliche Auswertung (Anzahl eigener 
+       Tiere) basierend auf dem 'myAccountData'-Filter.
+   * Fehlerbehebung: Korrektur der Abhängigkeits-Reihenfolge im Script-Setup 
+     zur Vermeidung von ReferenceErrors bei reaktiven Variablen.
+
+2. DYNAMISCHES UI-BRANDING:
+   * Implementierung von Ternary-Operatoren im Template zur dynamischen 
+     Beschriftung der Dashboard-Karten.
+   * Kontextsensitive Texte: "Mitglieder" vs. "Dein Konto", "Haustiere 
+     gesamt" vs. "Deine Lieblinge".
+
+3. COMMUNITY-VISUALISIERUNG:
+   * Erweiterung der Community-Liste um Rollen-Badges.
+   * Visuelle Kennzeichnung von Administratoren innerhalb der Nutzer-
+     übersicht zur Steigerung der Transparenz.
+
+======================================================================
+DOKUMENTATION IMPLEMENTIERUNG – PROJEKT: PETFRIENDS
+======================================================================
+Datum: 06.01.2026 | Stand: 22:00 Uhr
+
+MEILENSTEIN 6: MULTIMEDIA-SUPPORT & FORMULAR-SICHERHEIT
+----------------------------------------------------------------------
+
+1. BILDER-UPLOAD-INFRASTRUKTUR (MULTER):
+   * Backend-Integration: Implementierung der Middleware 'multer' zur 
+     Verarbeitung von 'multipart/form-data'.
+   * Dateisystem: Konfiguration eines dedizierten '/uploads'-Verzeichnisses 
+     mit automatischer Dateinamens-Generierung (Timestamp-Prefix).
+   * Static Serving: Freigabe des Upload-Ordners via 'express.static', um 
+     Bilder über eine öffentliche URL im Frontend verfügbar zu machen.
+
+2. DATENBANK-ERWEITERUNG & MIGRATION:
+   * Prisma Schema: Erweiterung des Modells 'PetProfile' um das optionale 
+     Feld 'imageUrl'.
+   * Migration: Erfolgreiche Aktualisierung der PostgreSQL-Struktur via 
+     'npx prisma migrate dev'.
+
+3. FRONTEND-LOGIK (FORMDATA):
+   * Daten-Transfer: Umstellung der 'addPet'-API-Funktion von JSON-Payload 
+     auf 'FormData', um Binärdaten (Bilder) übertragen zu können.
+   * UI-Integration: Implementierung einer bedingten Anzeige (v-if/v-else) 
+     für Tierfotos mit 'object-cover'-Styling und Fallback-Icons.
+
+4. ROLLENBASIERTE EINGABE-KONTROLLE:
+   * Besitzer-Zuweisung: 
+     - Admin-Ansicht: Vollständige Auswahlbox für alle registrierten Nutzer.
+     - Privat-Ansicht: Deaktivierung der Auswahl; Anzeige des eigenen 
+       Namens als statisches Feld.
+   * Sicherheits-Logik: Clientseitige Zuweisung der 'currentUser.id' bei 
+     Privatnutzern zur Verhinderung von Fremd-Einträgen.
+
+ERGEBNIS:
+Die App unterstützt nun Multimedia-Inhalte und verfügt über ein 
+kontextsensitives Berechtigungssystem bei der Datenerfassung.
+======================================================================

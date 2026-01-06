@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 3000;
 // 1. Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 
 // 2. Routen-Module importieren und nutzen
 // Hier sagen wir: Alles was mit /api/users beginnt -> userRoutes
