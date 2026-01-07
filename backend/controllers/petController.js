@@ -2,7 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 exports.createPet = async (req, res) => {
-  const { name, species, breed, ownerId } = req.body;
+  const { name, species, breed, ownerId, birthdate } = req.body;
   
   // Wir schauen nach, ob Multer eine Datei in req.file abgelegt hat
   let imageUrl = null;
@@ -17,6 +17,7 @@ exports.createPet = async (req, res) => {
         name,
         species,
         breed,
+        birthdate: birthdate ? new Date(birthdate) : null,
         ownerId: parseInt(ownerId),
         imageUrl: imageUrl // Hier wird der Pfad gespeichert
       }
@@ -44,14 +45,25 @@ exports.deletePet = async (req, res) => {
 
 exports.updatePet = async (req, res) => {
   const { id } = req.params;
-  const { name, species, breed, description } = req.body;
+  // 1. birthdate und ownerId aus dem Body holen
+  const { name, species, breed, description, birthdate, ownerId } = req.body;
+  
   try {
     const updatedPet = await prisma.petProfile.update({
       where: { id: parseInt(id) },
-      data: { name, species, breed, description }
+      data: { 
+        name, 
+        species, 
+        breed, 
+        description,
+        // 2. Das Datum für die Datenbank umwandeln
+        birthdate: birthdate ? new Date(birthdate) : null,
+        ownerId: ownerId ? parseInt(ownerId) : undefined
+      }
     });
     res.json(updatedPet);
   } catch (error) {
+    console.error("Update-Fehler:", error);
     res.status(500).json({ error: 'Fehler beim Aktualisieren des Haustiers' });
   }
 };

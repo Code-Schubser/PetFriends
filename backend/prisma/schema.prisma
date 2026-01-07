@@ -32,6 +32,7 @@ model PetProfile {
   name        String
   species     String
   breed       String?
+  birthdate DateTime?  
   description String?  @db.Text
   birthdate   DateTime?
   imageUrl    String? 

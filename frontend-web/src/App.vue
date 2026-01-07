@@ -218,6 +218,17 @@
                     placeholder="Rasse"
                     class="w-full border-2 border-gray-100 p-3 rounded-xl outline-none"
                   />
+                  <div class="space-y-2">
+                    <label
+                      class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1"
+                      >Geburtsdatum</label
+                    >
+                    <input
+                      v-model="newPet.birthdate"
+                      type="date"
+                      class="w-full border-2 border-gray-100 p-3 rounded-xl focus:border-indigo-500 outline-none transition text-gray-600 font-medium"
+                    />
+                  </div>
                 </div>
                 <div class="space-y-2">
                   <label
@@ -356,7 +367,7 @@
                         <div>
                           <p class="font-bold text-gray-800">{{ pet.name }}</p>
                           <p class="text-[10px] text-indigo-500 font-black uppercase">
-                            {{ pet.breed || "Mischling" }}
+                            {{ pet.breed || "Mischling" }} • {{ getAge(pet.birthdate) }}
                           </p>
                         </div>
                       </div>
@@ -512,21 +523,37 @@
                     <div
                       v-for="pet in user.pets"
                       :key="pet.id"
-                      class="flex-shrink-0 bg-gray-50 px-3 py-2 rounded-xl flex items-center space-x-2 border border-gray-100"
+                      class="flex-shrink-0 bg-gray-50 p-3 rounded-2xl flex items-center space-x-3 border border-gray-100 shadow-sm"
                     >
                       <div
-                        class="h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-gray-200 flex items-center justify-center"
+                        class="h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl bg-gray-200 border-2 border-white shadow-sm"
                       >
                         <img
                           v-if="pet.imageUrl"
                           :src="`http://localhost:3000${pet.imageUrl}`"
                           class="h-full w-full object-cover"
                         />
-                        <span v-else class="text-xl">{{
-                          getSpeciesIcon(pet.species)
-                        }}</span>
+                        <span
+                          v-else
+                          class="text-2xl flex items-center justify-center h-full"
+                        >
+                          {{ getSpeciesIcon(pet.species) }}
+                        </span>
                       </div>
-                      <span class="text-xs font-bold text-gray-600">{{ pet.name }}</span>
+
+                      <div class="flex flex-col">
+                        <p class="text-sm font-black text-gray-800 leading-none mb-1">
+                          {{ pet.name
+                          }}<span v-if="pet.birthdate" class="text-gray-400 font-bold"
+                            >, {{ getAge(pet.birthdate).split(" ")[0] }}</span
+                          >
+                        </p>
+                        <p
+                          class="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter"
+                        >
+                          {{ pet.breed || "Mischling" }}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -561,7 +588,7 @@ const registerData = ref({
   lastName: "",
   role: "PRIVAT",
 });
-const newPet = ref({ name: "", species: "DOG", breed: "", ownerId: null });
+const newPet = ref({ name: "", species: "DOG", breed: "", birthdate: "", ownerId: null });
 
 // SEARCH & FILTER
 const searchQuery = ref("");
@@ -634,12 +661,12 @@ const previewUrl = computed(() => {
   if (selectedFile.value) {
     return URL.createObjectURL(selectedFile.value);
   }
-  
+
   // 2. Wenn wir im Edit-Modus sind und das Tier schon ein Bild hat: Zeige das Server-Bild
   if (isEditing.value && newPet.value.imageUrl) {
     return `http://localhost:3000${newPet.value.imageUrl}`;
   }
-  
+
   // 3. Sonst: Gar nichts anzeigen
   return null;
 });
@@ -696,6 +723,7 @@ const addPet = async () => {
     formData.append("name", newPet.value.name);
     formData.append("species", newPet.value.species);
     formData.append("breed", newPet.value.breed || "");
+    formData.append("birthdate", newPet.value.birthdate || "");
     // Wir checken: Ist es ein Admin? Dann nimm seine Auswahl.
     // Wenn nicht, nimm automatisch die ID vom eingeloggten User.
     const finalOwnerId =
@@ -727,16 +755,17 @@ const addPet = async () => {
 };
 
 const startEdit = (pet) => {
-  selectedFile.value = null; 
+  selectedFile.value = null;
   isEditing.value = true;
   editingPetId.value = pet.id;
-  
+
   newPet.value = {
     name: pet.name,
     species: pet.species,
     breed: pet.breed || "",
+    birthdate: pet.birthdate ? pet.birthdate.split("T")[0] : "",
     ownerId: pet.ownerId,
-    imageUrl: pet.imageUrl
+    imageUrl: pet.imageUrl,
   };
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
@@ -786,4 +815,25 @@ onMounted(() => {
 
   fetchUsers();
 });
+const getAge = (birthdate) => {
+  if (!birthdate) return "Alter unbekannt";
+
+  const birth = new Date(birthdate);
+  const now = new Date();
+
+  let years = now.getFullYear() - birth.getFullYear();
+  let months = now.getMonth() - birth.getMonth();
+
+  // Korrektur, falls der Geburtstag im aktuellen Jahr noch nicht war
+  if (months < 0 || (months === 0 && now.getDate() < birth.getDate())) {
+    years--;
+    months += 12;
+  }
+
+  if (years > 0) {
+    return `${years} ${years === 1 ? "Jahr" : "Jahre"}`;
+  } else {
+    return `${months} ${months === 1 ? "Monat" : "Monate"}`;
+  }
+};
 </script>
