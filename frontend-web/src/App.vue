@@ -224,6 +224,24 @@
                     class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1"
                     >Foto auswählen</label
                   >
+                  <div v-if="previewUrl" class="mt-2 mb-4 relative">
+                    <div
+                      class="h-40 w-full rounded-2xl overflow-hidden border-2 border-indigo-100 bg-gray-50"
+                    >
+                      <img
+                        v-if="previewUrl"
+                        :src="previewUrl"
+                        class="w-full h-full object-cover"
+                      />
+                      <button
+                        @click="clearSelection"
+                        type="button"
+                        class="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-xl text-xs font-black uppercase"
+                      >
+                        Entfernen
+                      </button>
+                    </div>
+                  </div>
                   <input
                     type="file"
                     @change="handleFileUpload"
@@ -601,6 +619,31 @@ const handleFileUpload = (event) => {
   selectedFile.value = event.target.files[0];
 };
 
+const clearSelection = () => {
+  // 1. Wir leeren die Variable, damit die Vorschau verschwindet
+  selectedFile.value = null;
+
+  // 2. Wir müssen auch das "echte" Dateifeld im Browser leeren
+  const fileInput = document.querySelector('input[type="file"]');
+  if (fileInput) {
+    fileInput.value = "";
+  }
+};
+const previewUrl = computed(() => {
+  // 1. Wenn ein neues Bild ausgewählt wurde: Zeige die lokale Vorschau
+  if (selectedFile.value) {
+    return URL.createObjectURL(selectedFile.value);
+  }
+  
+  // 2. Wenn wir im Edit-Modus sind und das Tier schon ein Bild hat: Zeige das Server-Bild
+  if (isEditing.value && newPet.value.imageUrl) {
+    return `http://localhost:3000${newPet.value.imageUrl}`;
+  }
+  
+  // 3. Sonst: Gar nichts anzeigen
+  return null;
+});
+
 // ACTIONS
 const fetchUsers = async () => {
   try {
@@ -684,13 +727,16 @@ const addPet = async () => {
 };
 
 const startEdit = (pet) => {
+  selectedFile.value = null; 
   isEditing.value = true;
   editingPetId.value = pet.id;
+  
   newPet.value = {
     name: pet.name,
     species: pet.species,
     breed: pet.breed || "",
     ownerId: pet.ownerId,
+    imageUrl: pet.imageUrl
   };
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
