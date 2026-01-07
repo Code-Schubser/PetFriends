@@ -1,9 +1,9 @@
-// 1. Der Generator erstellt den JS-Code, mit dem wir später Datenbankabfragen schreiben
+// 1. Der Generator erstellt den JS-Code
 generator client {
   provider = "prisma-client-js"
 }
 
-// 2. Die Datasource verbindet Prisma mit deiner PostgreSQL-Datenbank über die .env Datei
+// 2. Die Datasource verbindet Prisma mit deiner PostgreSQL-Datenbank
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -11,32 +11,84 @@ datasource db {
 
 // 3. Tabellen-Definitionen (Physisches Datenmodell Kapitel 3.4)
 
-// Tabelle: users
 model User {
-  id           Int          @id @default(autoincrement()) // user_id (PK)
-  email        String       @unique                       // email (Unique)
-  passwordHash String                                     // password_hash
-  firstName    String?                                    // first_name (Optional)
-  lastName     String?                                    // last_name (Optional)
-  role         String       @default("PRIVAT")            // 'PRIVAT', 'INSTITUTION', 'ADMIN'
-  isVerified   Boolean      @default(false)               // is_verified
-  createdAt    DateTime     @default(now())               // created_at
+  id           Int          @id @default(autoincrement()) // user_id (PK) [cite: 823]
+  email        String       @unique                       // email (Unique) [cite: 824]
+  passwordHash String                                     // password_hash [cite: 825]
+  firstName    String?                                    // first_name [cite: 826]
+  lastName     String?                                    // last_name [cite: 827]
+  role         String       @default("PRIVAT")            // 'PRIVAT', 'INSTITUTION', 'ADMIN' [cite: 828]
+  isVerified   Boolean      @default(false)               // is_verified [cite: 829]
+  createdAt    DateTime     @default(now())               // created_at [cite: 830]
   
-  // Relation: Ein User kann viele Haustiere besitzen
-  pets         PetProfile[]
+  // Relationen
+  pets         PetProfile[]                               // Ein User besitzt mehrere Haustiere [cite: 831, 832]
+  messages     Message[]                                  // Ein User verfasst Nachrichten [cite: 845, 867]
 }
 
-// Tabelle: pet_profiles
 model PetProfile {
-  id          Int      @id @default(autoincrement())
-  name        String
-  species     String
-  breed       String?
-  birthdate DateTime?  
-  description String?  @db.Text
-  birthdate   DateTime?
-  imageUrl    String? 
-  createdAt   DateTime @default(now())
-  ownerId     Int
-  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id          Int       @id @default(autoincrement())     // pet_id (PK) [cite: 833]
+  ownerId     Int                                         // owner_id (FK) [cite: 834]
+  name        String    @db.VarChar(100)                  // name [cite: 835]
+  species     String    @db.VarChar(50)                   // species (DOG, CAT, etc.) [cite: 836]
+  breed       String?   @db.VarChar(100)                  // breed [cite: 837]
+  description String?   @db.Text                          // description [cite: 838]
+  birthdate   DateTime? @db.Date                          // birthdate (DATE) 
+  createdAt   DateTime  @default(now())                   // created_at [cite: 840]
+  imageUrl    String?                                     // Pfad zum Profilbild
+
+  // Relationen
+  owner         User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  sentLikes     Like[]    @relation("SentLikes")          // Von diesem Tier verteilte Likes [cite: 846, 859]
+  receivedLikes Like[]    @relation("ReceivedLikes")      // Erhaltene Likes [cite: 846, 860]
+  matchesA      Match[]   @relation("MatchesA")           // Teil A eines Matches [cite: 841, 853]
+  matchesB      Match[]   @relation("MatchesB")           // Teil B eines Matches [cite: 844, 855]
+  media         Media[]                                   // Zugehörige Medien (Bilder/Videos) [cite: 847, 851]
+}
+
+model Like {
+  id           Int      @id @default(autoincrement())     // like_id (PK) [cite: 858]
+  sourcePetId  Int                                        // source_pet_id (FK) [cite: 859]
+  targetPetId  Int                                        // target_pet_id (FK) [cite: 860]
+  isLiked      Boolean                                    // TRUE = Like, FALSE = Dislike [cite: 861]
+  createdAt    DateTime @default(now())
+
+  // Relationen
+  sourcePet    PetProfile @relation("SentLikes", fields: [sourcePetId], references: [id])
+  targetPet    PetProfile @relation("ReceivedLikes", fields: [targetPetId], references: [id])
+}
+
+model Match {
+  id        Int      @id @default(autoincrement())         // match_id (PK) [cite: 850]
+  petAId    Int                                            // pet_a_id (FK) [cite: 853]
+  petBId    Int                                            // pet_b_id (FK) [cite: 855]
+  matchedAt DateTime @default(now())                       // matched_at [cite: 856]
+
+  // Relationen
+  petA      PetProfile @relation("MatchesA", fields: [petAId], references: [id])
+  petB      PetProfile @relation("MatchesB", fields: [petBId], references: [id])
+  messages  Message[]                                      // Ein Match enthält Nachrichten [cite: 865, 867]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())         // message_id (PK) [cite: 868]
+  matchId   Int                                            // match_id (FK) 
+  senderId  Int                                            // sender_id (FK) 
+  content   String   @db.Text                              // content [cite: 870]
+  sentAt    DateTime @default(now())                       // sent_at [cite: 871]
+
+  // Relationen
+  match     Match    @relation(fields: [matchId], references: [id])
+  sender    User     @relation(fields: [senderId], references: [id])
+}
+
+model Media {
+  id         Int      @id @default(autoincrement())        // media_id (PK) [cite: 848]
+  petId      Int                                           // pet_id (FK) [cite: 851]
+  url        String   @db.VarChar(512)                     // url [cite: 852]
+  type       String   @db.VarChar(10)                      // type (IMAGE, VIDEO) [cite: 854]
+  uploadedAt DateTime @default(now())                      // uploaded_at [cite: 857]
+
+  // Relationen
+  pet        PetProfile @relation(fields: [petId], references: [id])
 }

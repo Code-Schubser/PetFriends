@@ -523,7 +523,7 @@
                     <div
                       v-for="pet in user.pets"
                       :key="pet.id"
-                      class="flex-shrink-0 bg-gray-50 p-3 rounded-2xl flex items-center space-x-3 border border-gray-100 shadow-sm"
+                      class="flex-shrink-0 bg-gray-50 p-3 rounded-2xl flex items-center space-x-4 border border-gray-100 shadow-sm min-w-[200px]"
                     >
                       <div
                         class="h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl bg-gray-200 border-2 border-white shadow-sm"
@@ -541,18 +541,33 @@
                         </span>
                       </div>
 
-                      <div class="flex flex-col">
-                        <p class="text-sm font-black text-gray-800 leading-none mb-1">
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-black text-gray-800 truncate">
                           {{ pet.name
                           }}<span v-if="pet.birthdate" class="text-gray-400 font-bold"
                             >, {{ getAge(pet.birthdate).split(" ")[0] }}</span
                           >
                         </p>
                         <p
-                          class="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter"
+                          class="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter truncate"
                         >
                           {{ pet.breed || "Mischling" }}
                         </p>
+                      </div>
+
+                      <div class="flex space-x-1">
+                        <button
+                          @click="handleRate(pet.id, false)"
+                          class="p-1.5 bg-white text-gray-300 hover:text-red-500 rounded-lg shadow-sm border border-gray-50 transition active:scale-90"
+                        >
+                          <span class="text-xs">❌</span>
+                        </button>
+                        <button
+                          @click="handleRate(pet.id, true)"
+                          class="p-1.5 bg-white text-gray-300 hover:text-red-500 rounded-lg shadow-sm border border-gray-50 transition active:scale-90"
+                        >
+                          <span class="text-xs">❤️</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -834,6 +849,41 @@ const getAge = (birthdate) => {
     return `${years} ${years === 1 ? "Jahr" : "Jahre"}`;
   } else {
     return `${months} ${months === 1 ? "Monat" : "Monate"}`;
+  }
+};
+
+const handleRate = async (targetPetId, isLiked) => {
+  // Wir nehmen für den Test das erste Tier des aktuellen Nutzers als Absender
+  if (!myAccountData.value.pets || myAccountData.value.pets.length === 0) {
+    alert("Du brauchst erst ein eigenes Tierprofil, um andere zu bewerten!");
+    return;
+  }
+
+  const sourcePetId = myAccountData.value.pets[0].id;
+
+  try {
+    const response = await fetch("http://localhost:3000/api/pets/rate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sourcePetId,
+        targetPetId,
+        isLiked,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.isMatch) {
+      alert("🎉 IT'S A MATCH! Ihr könnt jetzt chatten.");
+      // Hier könnten wir später die Match-Liste aktualisieren (SU-05)
+    } else {
+      console.log(isLiked ? "Like gesendet" : "Dislike gesendet");
+    }
+
+    // Optional: Seite oder Liste aktualisieren, um das Tier auszublenden
+  } catch (error) {
+    console.error("Fehler beim Senden der Bewertung:", error);
   }
 };
 </script>

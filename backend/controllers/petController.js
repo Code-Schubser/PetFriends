@@ -67,3 +67,53 @@ exports.updatePet = async (req, res) => {
     res.status(500).json({ error: 'Fehler beim Aktualisieren des Haustiers' });
   }
 };
+
+// Funktion zum Bewerten eines Tieres (SU-04 & SU-05)
+exports.ratePet = async (req, res) => {
+  const { sourcePetId, targetPetId, isLiked } = req.body;
+
+  try {
+    // 1. Speichere die Bewertung in der 'Like' Tabelle (SU-04)
+    const newLike = await prisma.like.create({
+      data: {
+        sourcePetId: parseInt(sourcePetId),
+        targetPetId: parseInt(targetPetId),
+        isLiked: isLiked // true für Like, false für Dislike
+      }
+    });
+
+    let matchCreated = false;
+
+    // 2. Wenn es ein Like war, prüfe auf einen Gegen-Like (SU-05)
+    if (isLiked) {
+      const counterLike = await prisma.like.findFirst({
+        where: {
+          sourcePetId: parseInt(targetPetId),
+          targetPetId: parseInt(sourcePetId),
+          isLiked: true
+        }
+      });
+
+      // 3. Wenn ein Gegen-Like existiert -> Match erstellen!
+      if (counterLike) {
+        await prisma.match.create({
+          data: {
+            petAId: parseInt(sourcePetId),
+            petBId: parseInt(targetPetId)
+          }
+        });
+        matchCreated = true;
+      }
+    }
+
+    // 4. Antwort an den Client senden (wie im Sequenzdiagramm)
+    res.json({ 
+      success: true, 
+      isMatch: matchCreated 
+    });
+
+  } catch (error) {
+    console.error("Fehler beim Bewerten:", error);
+    res.status(500).json({ error: "Fehler beim Verarbeiten der Bewertung" });
+  }
+};
