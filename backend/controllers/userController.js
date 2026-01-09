@@ -65,12 +65,42 @@ exports.login = async (req, res) => {
   }
 };
 
-// 3. ALLE NUTZER
+// ALLE NUTZER LADEN (Sicherer Modus für AdminView)
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await prisma.user.findMany({ include: { pets: true } });
+    // Wir lassen das 'include' weg, um Circular-JSON-Crashes zu vermeiden
+    const users = await prisma.user.findMany(); 
     res.json(users);
   } catch (error) {
-    res.status(500).json({ error: "Fehler beim Laden" });
+    console.error("Admin-Fehler beim Laden der Nutzer:", error);
+    res.status(500).json({ error: "Datenbankfehler" });
+  }
+};
+
+// Funktion zum Abrufen aller Haustiere eines bestimmten Nutzers
+exports.getUserPets = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const pets = await prisma.petProfile.findMany({
+      where: { ownerId: parseInt(id) }
+    });
+    res.json(pets);
+  } catch (error) {
+    console.error("Fehler beim Laden der User-Pets:", error);
+    res.status(500).json({ error: "Fehler beim Laden der Haustiere" });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  const { id } = req.params;
+  const { firstName, lastName, email, role } = req.body;
+  try {
+    const updated = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: { firstName, lastName, email, role }
+    });
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: "Fehler beim Aktualisieren des Nutzers" });
   }
 };
